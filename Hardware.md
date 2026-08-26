@@ -42,9 +42,7 @@ Access: DCUI on HDMI (F2 config, F12 shutdown, Alt+F1 shell). Web UI at https://
 
 | Item | Status |
 |---|---|
-| Sony 8GB USB | Known-good ESXi installer stick - keep |
-| SanDisk Ultra 128GB SDXC | Spare boot media (needs reader) |
-| SanDisk Dual Drive Go 128GB | Dead - controller stuck reporting 64MB physical; unrecoverable |
+| Sony 8GB USB | Known-good ESXi installer stick - keep ||
 
 Lesson: verify new flash media with H2testw or ValiDrive before trusting it.
 
