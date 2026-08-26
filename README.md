@@ -69,7 +69,6 @@ It's blocked on hardware. The NAS ships with UGREEN's own OS on the internal sto
 
 | Note | Contents |
 |---|---|
-| [Home.md](Home.md) | Living status and checklist |
 | [Hardware.md](Hardware.md) | Every device: specs, quirks, fixes |
 | [Roadmap.md](Roadmap.md) | Certification track and lab build phases |
 | [Sessions/](Sessions/) | Dated build and troubleshooting logs |
