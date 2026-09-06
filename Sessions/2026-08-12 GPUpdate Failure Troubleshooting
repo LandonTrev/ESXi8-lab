@@ -1,0 +1,51 @@
+## GPO failure - RPC dynamic port range (2026-08-12)
+
+### Symptom
+gpupdate /force on CLIENT01 failed both Computer and User policy.
+Console message: "Windows could not resolve the computer name."
+Event 1055 (System log) fired fresh every policy cycle.
+
+### Misleading part
+The 1055 boilerplate blames name resolution / AD replication. It does not.
+Same generic text covers several different underlying error codes.
+
+### What was ruled out (all healthy)
+- DNS: CLIENT01 points at 10.10.10.10, resolves landon.lab and DC01 fine
+- Ports 389/445/88: Test-NetConnection all True
+- SYSVOL: Test-Path \\landon.lab\SYSVOL = True
+  (note: \\10.10.10.10\SYSVOL by IP fails by design - SYSVOL is DFS, accessed by domain name not IP)
+- Secure channel: Test-ComputerSecureChannel = True
+- Time: CLIENT01 syncing from DC01, no skew
+- Single adapter, no dual-path / IPv6 routable
+- Not a permissions issue: computer GP runs as SYSTEM (S-1-5-18)
+
+### Root cause
+Pulled real error code from the event:
+(Get-WinEvent -FilterHashtable @{LogName='System'; Id=1055} -MaxEvents 1).Properties.Value
+Returned 1722 = "The RPC server is unavailable."
+
+RPC is a two-step call:
+1. Client hits RPC Endpoint Mapper on TCP 135 ("which port is service X on?")
+2. Mapper returns a dynamic high port in 49152-65535
+3. Client connects to that port for the actual work
+
+MikroTik allow rule (VLAN 20 to VLAN 10) had dst-port ending in:
+  49152,65535   <- comma = two individual ports
+Needed:
+  49152-65535   <- dash = the full range
+
+135 was allowed so step 1 worked, but the random high port from step 2
+was almost never 49152 or 65535 exactly, so the real RPC call was dropped.
+Result: 1722, surfaced as the misleading "could not resolve computer name."
+
+### Fix
+WinBox > IP > Firewall > Filter Rules > the VLAN20-to-VLAN10 allow rule.
+Dst. Port: change ...49152,65535 to ...49152-65535. Protocol tcp. Apply.
+gpupdate /force on CLIENT01 then completed successfully.
+
+### Lesson
+Same class of bug as an earlier TCP 389 gap: symptom pointed at DNS,
+cause was a missing firewall port. RPC needs 135 AND the full dynamic
+range 49152-65535 as an actual range. When a GP error says "could not
+resolve," pull the numeric code from the event Properties before trusting
+the message.

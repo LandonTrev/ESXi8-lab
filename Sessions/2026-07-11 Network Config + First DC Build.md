@@ -57,7 +57,7 @@ Initial state: only one datastore (110 GB) — that was the small **boot SSD**. 
 
 Rationale:
 
-- Server 2022 mainstream support **ends October 2026** — a fresh 2022 build enters maintenance mode almost immediately
+- Server 2022 mainstream support **ends October 2026** a fresh 2022 build enters maintenance mode almost immediately
 - Most orgs upgrading are going straight to 2025 rather than stopping at 2022
 - 2025 changed AD security defaults in ways directly relevant to the security track: **Credential Guard on by default**, **NTLM deprecated in favor of Kerberos**, **SMB signing required by default**
 - 180-day eval, no license needed for lab

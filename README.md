@@ -1,91 +1,78 @@
-# Enterprise Active Directory Lab
+# ESXi VSphere 8 Lab
 
-A from-scratch enterprise IT lab: a segmented Active Directory network running on a Type-1 hypervisor, built on real hardware to develop and demonstrate hands-on skills for a junior systems administration and cybersecurity role.
+This lab is built around a mini pc running ESXi as a type 1 bare metal hypervisor. The host connects to a MicroTik CRS Switch over a trunk (plus and access port for management). The switch handles VLAN filtering and L3 routing between the lab segments (VLAN10,VLAN20,VLAN30,etc.)
 
-This repository is the lab's living documentation - the architecture, dated build logs, and distilled reference notes, written as the lab is built and kept repo-ready as I go.
+The list of hardware is as follows:
 
-**Status:** active build, updated with each session.
+- Minisforum MS-01 (i9-13900H, 64GB DDR5), the only ESXi host.
+- MikroTik CRS310-8G+2S+IN, doing VLAN filtering, routing between VLANs, and DHCP relay. CRS models having routing capabilities.
+- A 10GbE SFP+ DAC from the switch to the host, carrying tagged traffic
+- A 2.5 GBE cable for host management traffic. Not tagged, this is the access port.
+- UGREEN DXP2800 with 2x 4TB in a ZFS mirror. Not set up yet see roadmap.
 
-## What this lab is
+**Why I'm Building this:** Originally, I started out with a fully Virtualized VirtualBox lab. The networking was hard to get a grasp on as it gets abstracted behind Virtual Adapters and NIC's mapped to interfaces on a virtualized router/firewall. I built this to actually see how VLAN's, trunk ports, access ports, and switching works with gear I have right in front of me. Also to work with a hypervisor and Switch OS which are used in actual enterprise environments. Running VirtualBox VMs on my primary laptop was also painfully slow and tough to navigate with the 4-5 VM's I'd have open at any given time.
 
-The goal is to simulate a small enterprise environment end to end - virtualization, centralized identity, segmented networking, and shared storage - and to document every decision as if handing the environment off to another administrator. Nothing here is click-through-a-tutorial: each layer is built deliberately, tested, and written up with the reasoning behind it.
-
-It is the practical complement to a certification track (Security+ now, a cloud fundamentals cert next), and it is aimed squarely at the patterns that show up in real infrastructure and government / defense environments: least privilege, network segmentation, default-deny firewalling, and separation of the management plane from production traffic.
+**Status:** active build, updated each session.
 
 ## Architecture
 
-![Lab architecture overview|697](Images/Lab-Architecture.svg)
-
 ### Physical topology
-The environment runs on a Minisforum MS-01 mini workstation acting as a single ESXi host, cabled through a MikroTik CRS310 switch. The layout is router, then switch, then server - the enterprise-realistic pattern where the switch is the core of the network rather than a passthrough. The host connects to the switch over a 10GbE SFP+ DAC carrying tagged VLAN traffic, with a separate 2.5GbE copper link reserved for management.
+
+Router, then switch (w/ L3 capability), then server. The switch is the core of the network instead of something traffic just passes through, which is how most real networks are laid out.
+
+The host talks to the switch over a 10GbE DAC carrying tagged VLAN traffic. ESXi management gets its own 2.5GbE cord, though its down to 1GbE because the switch's ports top out there.
 
 ### Virtualization
-VMware ESXi 8.0 U3 runs directly on the hardware. A dedicated virtual switch (vSwitch-Lab) carries lab traffic on the 10GbE uplink, with a tagged port group per VLAN, while host management stays on its own physical NIC. Getting ESXi stable on a hybrid P-core / E-core consumer CPU required specific kernel tuning, which is documented in the build logs.
 
-### Identity - Active Directory
-A Windows Server 2025 domain controller (DC01) hosts a new AD DS forest (landon.lab) and provides DNS and DHCP for the environment. A Windows 11 Enterprise client (CLIENT01) is domain-joined and managed centrally. User accounts follow an enterprise naming standard, with standard user accounts separated from dedicated administrative accounts to practice least privilege.
+ESXi 8.0 U3 sits directly on the hardware. One vSwitch (vSwitch-Lab) handles lab traffic on the 10GbE uplink, with a tagged port group for each VLAN. Host management stays on its own physical NIC.
+
+The MS-01 has a mix of performance and efficiency cores, which ESXi does not love. Getting it stable took kernel tuning. Details are in the build logs.
+
+### Identity
+
+On VLAN10 DC01 runs Windows Server 2025 and holds the landon.lab forest, plus DNS and DHCP for everything. VLAN 20 holds clients, CLIENT01 is Windows 11 Enterprise, joined to the domain and managed from the DC. Users follow a naming standard, and my admin account is separate from my normal one.
 
 ### Network segmentation
-Traffic is separated into VLANs using 802.1Q tagging, enforced by bridge VLAN filtering on the MikroTik. Servers and clients live on different VLANs and cannot reach each other freely - inter-VLAN traffic is routed and then filtered by a stateful, default-deny firewall that permits only the specific Active Directory services clients require. A DHCP relay carries client DHCP requests across the VLAN boundary to the domain controller.
+
+VLANs are tagged with 802.1Q and enforced by bridge VLAN filtering on the MikroTik. Servers sit on VLAN 10, clients on VLAN 20, and they can't reach each other freely. Traffic between them gets routed and then filtered, with the firewall dropping everything except the AD services clients actually need.
+
+DHCP was the interesting part. Client requests are broadcasts, so they die at the VLAN boundary. A relay picks them up and forwards them as unicast to DC01. Reads the scope table and selects an available address within the range.
 
 ### Storage
-A UGREEN DXP2800 NAS with mirrored drives is planned to run TrueNAS, providing ZFS-backed NFS / iSCSI datastores to ESXi over the 10GbE backbone and AD-integrated SMB shares. This layer is on the roadmap and not yet built (Waiting on 2x 4TB NAS Drives; WD Red Plus 5400 rpm)
-## Component breakdown
 
-| Layer      | Component                               | Role in the lab                                              |
-| ---------- | --------------------------------------- | ------------------------------------------------------------ |
-| Compute    | Minisforum MS-01 (i9-13900H, 64GB DDR5) | Single ESXi host                                             |
-| Hypervisor | VMware ESXi 8.0 U3                      | Type-1 virtualization, virtual networking                    |
-| Networking | MikroTik CRS310-8G+2S+IN                | VLAN trunking and filtering, DHCP relay, inter-VLAN firewall |
-| Backbone   | 10GbE SFP+ DAC                          | Tagged VLAN uplink between switch and host                   |
-| Identity   | Windows Server 2025 (DC01)              | AD DS forest, DNS, DHCP                                      |
-| Client     | Windows 11 Enterprise (CLIENT01)        | Domain-joined, centrally managed endpoint                    |
-| Storage    | UGREEN DXP2800 + 2x 4TB (ZFS mirror)    | TrueNAS shared storage (planned)                             |
+Not built yet. The plan is TrueNAS on the DXP2800 serving NFS and iSCSI datastores to ESXi off the ZFS mirror, plus SMB shares joined to the domain.
 
-## Built vs planned
+It's blocked on hardware. The NAS ships with UGREEN's own OS on the internal storage. Determining whether it is worth it to get hands on with TrueNAS. Other things come first.
 
-**Built and validated**
-- ESXi host installed and tuned for the hardware, with a datastore on dedicated NVMe.
-- Virtual networking: dedicated vSwitch, per-VLAN tagged port groups, management traffic isolated on its own NIC.
-- Active Directory forest (landon.lab) with DNS and DHCP.
-- VLAN 10 (servers) and VLAN 20 (clients) segmented with 802.1Q, validated end to end.
-- DHCP relay carrying client requests across the VLAN boundary.
-- Domain-joined Windows 11 client, with the full join / rename / DNS-registration lifecycle.
-- Standard and administrative user accounts following least-privilege separation.
-- Stateful, default-deny inter-VLAN firewall permitting only required AD services.
+## What works
 
-**On the roadmap**
-- VLAN 30 (storage) and VLAN 99 (management).
-- TrueNAS on the NAS: ZFS-mirrored NFS / iSCSI datastores and AD-integrated SMB shares.
-- AD Certificate Services / PKI on a dedicated member server.
-- Remote access to the lab via Tailscale.
-- Additional practice tracks: Server Core, Azure Arc.
+- ESXi installed and configured for the CPU, datastore on its own NVMe
+- vSwitch-Lab set up with a tagged port group per VLAN, management traffic on a separate NIC
+- landon.lab forest with DNS and DHCP
+- VLAN 10 for servers and VLAN 20 for clients, segmented and tested end to end
+- DHCP relay working across the VLAN boundary
+- Windows 11 client joined to the domain, renamed, and registered in DNS (so other machines and the domain can find it by name) 
+- Separate standard and admin accounts
+- Firewall between the VLANs dropping everything but the AD services clients need 
 
-## Skills this demonstrates
+## Roadmap
 
-- Type-1 hypervisor deployment and virtual networking (ESXi, vSwitch, port groups, VLAN tagging).
-- Active Directory design and administration built from the server side up (forest, DNS, DHCP, domain join, account and OU practices).
-- Enterprise network segmentation: 802.1Q VLANs, trunking, DHCP relay, and stateful default-deny firewalling.
-- Security fundamentals in practice: least privilege, management-plane separation, and service-scoped access control.
-- Documentation-as-code: every build tracked in version control, written to be reproducible and sanitized for public sharing.
-
-## Related work
-
-A prior virtualized security lab (pfSense, Active Directory, Wazuh, and Suricata) included a documented Kerberoasting attack and detection walkthrough, focused on the blue-team / detection side of the same skill set.
+- VLAN 30 for storage and VLAN 99 for management
+- TrueNAS: NFS and iSCSI datastores on the ZFS mirror, SMB shares joined to the domain
+- PowerShell. Moving day to day AD work out of the GUI and committing the scripts here
+- AD Certificate Services on its own member server
+- Tailscale for remote access, running on the NAS rather than the host. If I fat finger a firewall rule I don't want to lose the hypervisor along with it
+- Server Core and Azure Arc
+- SIEM and NIDS work in here eventually. TryHackMe is covering the basics for now
 
 ## Repository layout
 
 | Note | Contents |
 |---|---|
-| [Home.md](Home.md) | Single living status and checklist note |
-| [Hardware](Hardware.md) | Every device: specs, quirks, fixes |
-| [Roadmap](Roadmap.md) | Certification track and lab build phases |
+| [Hardware.md](Hardware.md) | Every device: specs, quirks, fixes |
+| [Roadmap.md](Roadmap.md) | Certification track and lab build phases |
 | [Sessions/](Sessions/) | Dated build and troubleshooting logs |
 | [Topics/](Topics/) | Distilled reference notes per concept |
 | [Images/](Images/) | Architecture and concept diagrams |
 
-This is an [Obsidian](https://obsidian.md) vault - clone it and open the folder as a vault for full wiki-link navigation, or just browse the Markdown here on GitHub.
-
-## A note on sanitization
-
-No credentials, keys, or internal identifiers are stored in this repository. Real addressing is replaced with placeholder ranges (VLAN 10 as 10.0.10.x, VLAN 20 as 10.0.20.x), and notes are written repo-ready rather than sanitized after the fact.
+This is an [Obsidian](https://obsidian.md) vault. Clone it and open the folder as a vault for full wiki-link navigation or just browse the Markdown here on GitHub.
