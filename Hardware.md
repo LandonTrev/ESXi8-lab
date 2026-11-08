@@ -33,27 +33,11 @@ Access: DCUI on HDMI (F2 config, F12 shutdown, Alt+F1 shell). Web UI at https://
 
 ## UGREEN DXP2800 - NAS
 - 2-bay, 2x WD Red Plus 4TB (WD40EFZZ)
-- Plan: replace stock OS with TrueNAS, ZFS mirror, NFS/iSCSI datastores for ESXi plus AD-integrated SMB shares
-- Status: pending (after ESXi is networked)
+- Replaced stock OS with TrueNAS for ZFS datastores and SMB filesharing to the domain. 
 
 ---
-
 ## Boot media and spares
 
-| Item | Status |
-|---|---|
-| Sony 8GB USB | Known-good ESXi installer stick - keep ||
-
-Lesson: verify new flash media with H2testw or ValiDrive before trusting it.
-
----
-
-## Cabling / topology (target)
-
-```
-Home Router -- CRS310 (2.5GbE uplink)
-                 |-- SFP+ 10G DAC -- MS-01 (ESXi)
-                 |-- 2.5GbE -- DXP2800 (TrueNAS)
-```
-
-Interim (until switch is configured): MS-01 copper port direct to router.
+| Item         | Status               |     |
+| ------------ | -------------------- | --- |
+| Sony 8GB USB | ESXi installer drive |     |

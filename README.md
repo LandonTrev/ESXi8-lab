@@ -11,9 +11,6 @@ The list of hardware is as follows:
 - UGREEN DXP2800 with 2x 4TB in a ZFS mirror. Not set up yet see roadmap.
 
 **Why I'm Building this:** Originally, I started out with a fully Virtualized VirtualBox lab. The networking was hard to get a grasp on as it gets abstracted behind Virtual Adapters and NIC's mapped to interfaces on a virtualized router/firewall. I built this to actually see how VLAN's, trunk ports, access ports, and switching works with gear I have right in front of me. Also to work with a hypervisor and Switch OS which are used in actual enterprise environments. Running VirtualBox VMs on my primary laptop was also painfully slow and tough to navigate with the 4-5 VM's I'd have open at any given time.
-
-**Status:** active build, updated each session.
-
 ## Architecture
 
 ### Physical topology
@@ -40,39 +37,13 @@ DHCP was the interesting part. Client requests are broadcasts, so they die at th
 
 ### Storage
 
-Not built yet. The plan is TrueNAS on the DXP2800 serving NFS and iSCSI datastores to ESXi off the ZFS mirror, plus SMB shares joined to the domain.
-
-It's blocked on hardware. The NAS ships with UGREEN's own OS on the internal storage. Determining whether it is worth it to get hands on with TrueNAS. Other things come first.
-
-## What works
-
-- ESXi installed and configured for the CPU, datastore on its own NVMe
-- vSwitch-Lab set up with a tagged port group per VLAN, management traffic on a separate NIC
-- landon.lab forest with DNS and DHCP
-- VLAN 10 for servers and VLAN 20 for clients, segmented and tested end to end
-- DHCP relay working across the VLAN boundary
-- Windows 11 client joined to the domain, renamed, and registered in DNS (so other machines and the domain can find it by name) 
-- Separate standard and admin accounts
-- Firewall between the VLANs dropping everything but the AD services clients need 
-
-## Roadmap
-
-- VLAN 30 for storage and VLAN 99 for management
-- TrueNAS: NFS and iSCSI datastores on the ZFS mirror, SMB shares joined to the domain
-- PowerShell. Moving day to day AD work out of the GUI and committing the scripts here
-- AD Certificate Services on its own member server
-- Tailscale for remote access, running on the NAS rather than the host. If I fat finger a firewall rule I don't want to lose the hypervisor along with it
-- Server Core and Azure Arc
-- SIEM and NIDS work in here eventually. TryHackMe is covering the basics for now
+TrueNAS on the DXP2800 NAS serving SMB shares on the domain. 
 
 ## Repository layout
 
-| Note | Contents |
-|---|---|
-| [Hardware.md](Hardware.md) | Every device: specs, quirks, fixes |
-| [Roadmap.md](Roadmap.md) | Certification track and lab build phases |
-| [Sessions/](Sessions/) | Dated build and troubleshooting logs |
-| [Topics/](Topics/) | Distilled reference notes per concept |
-| [Images/](Images/) | Architecture and concept diagrams |
-
-This is an [Obsidian](https://obsidian.md) vault. Clone it and open the folder as a vault for full wiki-link navigation or just browse the Markdown here on GitHub.
+| Note                       | Contents                              |
+| -------------------------- | ------------------------------------- |
+| [Hardware.md](Hardware.md) | Every device: specs, quirks, fixes    |
+| [Sessions/](Sessions/)     | Dated build and troubleshooting logs  |
+| [Topics/](Topics/)         | Distilled reference notes per concept |
+| [Images/](Images/)         | Architecture and concept diagrams     |
