@@ -72,9 +72,5 @@ Security payoff: this rule only allows replies to conversations the CLIENT start
 - Test something that SHOULD work (an allowed service) - it should succeed.
 - Test something that should NOT work (a service not on the allow list, e.g. ICMP ping) - it should fail. A failed ping is the good result: it proves the drop rule is doing its job.
 
-## Career relevance (gov / defense / sysadmin)
-
-This is least privilege enforced at the network layer instead of the account layer. Default-deny, allow only what is needed, and the established/related asymmetry are all standard concepts on Security+ and in hardened enterprise / government environments.
-
 Learned in: [[Sessions/2026-07-16 Client Join and Inter-VLAN Firewall]]
 See also: [[Topics/AD-Ports-and-Services]]

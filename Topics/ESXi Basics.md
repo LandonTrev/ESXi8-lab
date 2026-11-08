@@ -12,7 +12,12 @@ In my lab: ESXi 8.0.3 (free vSphere Hypervisor 8.0U3e, build 24677879) on the Mi
 - Free license: full hypervisor, but no vCenter connectivity and 8 vCPU max per VM. Fine for a lab. For vCenter practice later, run the VCSA appliance on its 60-day eval.
 
 ## Getting the free version (post-Broadcom)
-support.broadcom.com, free account, division set to VMware Cloud Foundation, search "VMware vSphere Hypervisor", download the .iso (not the offline-bundle ZIP). Write with Rufus: GPT, UEFI (non-CSM), ISO Image mode.
+support.broadcom.com
+free account
+division set to VMware Cloud Foundation
+search "VMware vSphere Hypervisor"
+download the .iso (not the offline-bundle ZIP)
+Write with Rufus: GPT, UEFI (non-CSM), ISO Image mode.
 
 ## Commands I have actually used
 ```
