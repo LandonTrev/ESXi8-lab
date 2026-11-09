@@ -17,11 +17,11 @@ The list of hardware is as follows:
 
 Router, then switch (w/ L3 capability), then server. The switch is the core of the network instead of something traffic just passes through.
 
-The host talks to the switch over a 10GbE DAC carrying tagged VLAN traffic. ESXi management gets its own 2.5GbE cord, though its down to 1GbE because the switch's ports top out there.
+The host talks to the switch over a 10GbE DAC carrying tagged VLAN traffic. ESXi management gets its own 2.5GbE cord, though it runs at 1GbE as the switch's ports top out there.
 
 ### Virtualization
 
-ESXi 8.0 U3 sits directly on the hardware. One vSwitch (vSwitch-Lab) handles lab traffic on the 10GbE uplink, with a tagged port group for each VLAN. Host management stays on its own physical NIC.
+ESXi 8.0 U3 sits on the MS-01. One vSwitch (vSwitch-Lab) handles lab traffic on the 10GbE uplink, with a tagged port group for each VLAN. Host management stays on its own physical NIC.
 
 The MS-01 has a mix of performance and efficiency cores, which ESXi does not love. Getting it stable took kernel tuning. Details are in the build logs.
 
