@@ -1,9 +1,4 @@
-# Hardware
-
-All lab hardware in one place. Reference note - update only when something changes.
-
----
-
+Below you will find Model Names and Specs of Hardware used in the current lab:
 ## Minisforum MS-01 - ESXi host
 - CPU: Intel i9-13900H (hybrid P/E-core)
 - RAM: 64GB DDR5 (2x32GB; 5600-rated, runs at 5200 - normal for the platform)
