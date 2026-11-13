@@ -77,7 +77,7 @@ TrueNAS on the DXP2800 NAS with ZFS datasets serving SMB shares to clients on th
 
 | Note                       | Contents                              |
 | -------------------------- | ------------------------------------- |
-| [Hardware.md](Hardware.md) | Every device: specs, quirks, fixes    |
+| [Hardware.md](Hardware.md) | Devices, Hardware and Specs   |
 | [Sessions/](Sessions/)     | Dated build and troubleshooting logs  |
-| [Topics/](Topics/)         | Distilled reference notes per concept |
+| [Topics/](Topics/)         | Reference notes per concept |
 | [Images/](Images/)         | Architecture and concept diagrams     |
