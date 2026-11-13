@@ -224,14 +224,11 @@ I decided not to keep a rescue port on the old network. The config export is my 
 
 ## Things I Found Along the Way
 
-- **The input chain has no drop at all,** so WinBox is reachable from every VLAN. CLIENT01 could open 10.10.20.1 and get a login prompt. The docker01 WinBox rule doesn't actually do anything yet.
-- **Mystery MAC `38:05:25:3A:72:FD`** is showing up untagged on VLAN 1 over the SFP+ trunk. It's one number off the ESXi management MAC, so probably another MS-01 NIC. Something on the ESXi side is sending untagged frames down the trunk.
-- **The SFP+ is tagged on VLAN 30** but the NAS is physical on ether3. Does anything on ESXi actually need VLAN 30?
+- **Mystery MAC `38:05:25:3A:72:FD`** is showing up untagged on VLAN 1 over the SFP+ trunk. (38:05:25:3A:72:FD) turned out to be vmnic1, the 10GbE network card in the MS-01. Under IP → Neighbors → LLDP, it showed up with just its MAC address and no name. That means the network card itself is announcing that it’s there, not ESXi. Those announcements (called LLDP) are sent without a VLAN tag, which is why it showed up on VLAN 1. It’s harmless, so I’m leaving it alone for now.
 
 ## Next
 
-- Full default deny: final drop in forward, lock down the input chain (WinBox only from VLAN 99 and docker01)
-- Figure out the untagged traffic on the trunk (look into `frame-types` on the SFP+ port)
+- Final default deny for firewall
 - DNS A record for `esxi01.landon.lab` pointing to 10.10.99.10
 
 
